@@ -33,7 +33,7 @@ export default function App() {
       setCityName(`${name}, ${country || ""}`);
 
       const weatherResponses = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto`,
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,uv_index_max&timezone=auto`,
       );
 
       if (!weatherResponses.ok) {
@@ -66,6 +66,16 @@ export default function App() {
   const tempMin = Math.round(weather.daily.temperature_2m_min[0]);
   const indexUv = Math.round(weather.daily.uv_index_max[0]);
 
+  const getUvDesc = (val) => {
+    if (val <= 2) return "Rendah";
+    if (val <= 5) return "Sedang";
+    if (val <= 7) return "Tinggi";
+    if (val <= 10) return "Sangat Tinggi";
+    if (val >= 11) return "Extreme";
+  };
+
+  const getBarUvWidth = Math.min((indexUv / 12) * 100, 100);
+
   return (
     <div className="w-full min-h-screen flex flex-col bg-blue-200">
       <NavbarComponent />
@@ -74,7 +84,10 @@ export default function App() {
         temp={currentTemp}
         desc={desc}
         weatherId={icon}
-        feelTemp={`Terasa seperti ${feelsLikeTemp} - Maks ${tempMax}° - Min ${tempMin}° - uv index: ${indexUv}`}
+        feelTemp={`Terasa seperti ${feelsLikeTemp} - Maks ${tempMax}° - Min ${tempMin}°`}
+        uvIndex={indexUv}
+        widthUV={getBarUvWidth}
+        descUV={getUvDesc(indexUv)}
       />
     </div>
   );

@@ -8,8 +8,8 @@ export default function NavbarComponent() {
   };
 
   return (
-    <div className="relative top-0 z-50 px-7 md:px-0 py-5 bg-blue-500 border-b-3 border-black outline-none">
-      <div className="w-full h-auto flex flex-row justify-between md:justify-around items-center">
+    <div className="relative top-0 z-50  px-8 lg:px-40 xl:px-60 py-5 bg-blue-500 border-b-3 border-black outline-none">
+      <div className="w-full h-auto flex flex-row justify-between items-center">
         <div className="flex flex-row items-center gap-3">
           <span className="bg-yellow-300 w-10 h-10 md:w-12 md:h-12 rounded-md outline-solid outline-2 outline-black shadow-[5px_5px_0_0_rgb(0,0,0)] flex justify-center items-center">
             <i class="ri-sun-cloudy-line" style={{ fontSize: "1.8rem" }} />

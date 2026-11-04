@@ -50,10 +50,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchDataByCity("blora");
+    fetchDataByCity("berjo");
   }, []);
 
-  if (loading) {
+  if (loading || !weather) {
     return <p>Load the datas from api..</p>;
   }
 
@@ -78,7 +78,7 @@ export default function App() {
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-blue-200">
-      <NavbarComponent />
+      <NavbarComponent onSearch={fetchDataByCity} />
       <HeroCard
         cityName={cityName}
         temp={currentTemp}
@@ -86,9 +86,20 @@ export default function App() {
         weatherId={icon}
         feelTemp={`Terasa seperti ${feelsLikeTemp} - Maks ${tempMax}° - Min ${tempMin}°`}
         uvIndex={indexUv}
-        widthUV={getBarUvWidth}
+        widthUV={`${getBarUvWidth}%`}
         descUV={getUvDesc(indexUv)}
       />
+      {loading && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex flex-col items-center justify-center">
+          {/* Kotak Card ala Neubrutalism untuk Loading */}
+          <div className="bg-amber-300 px-8 py-6 rounded-lg outline-solid outline-3 outline-black shadow-[7px_7px_0_0_rgb(0,0,0)] flex flex-col items-center gap-3">
+            <i className="ri-loader-4-line text-4xl animate-spin text-black"></i>
+            <p className="font-spaceg font-bold text-lg text-black">
+              Mencari Data Cuaca...
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

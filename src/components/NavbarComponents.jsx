@@ -1,10 +1,20 @@
 import React, { useState } from "react";
 
-export default function NavbarComponent() {
+export default function NavbarComponent({ onSearch }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const toggleSeacrh = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim() !== "") {
+      onSearch(searchTerm);
+      setSearchTerm("");
+      setIsOpen(false);
+    }
   };
 
   return (
@@ -19,14 +29,19 @@ export default function NavbarComponent() {
           </h1>
         </div>
         <div>
-          <div className="md:flex md:flex-row w-full bg-white py-1 px-4 items-center rounded-md outline-solid outline-2 outline-black shadow-[5px_5px_0_0_rgb(0,0,0)] hidden">
+          <form
+            className="md:flex md:flex-row w-full bg-white py-1 px-4 items-center rounded-md outline-solid outline-2 outline-black shadow-[5px_5px_0_0_rgb(0,0,0)] hidden"
+            onSubmit={handleSubmit}
+          >
             <i className="ri-search-line" style={{ fontSize: "1.4rem" }}></i>
             <input
               type="text"
               placeholder="cari Kota..."
               className="bg-white ml-3 py-2 items-center w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
-          </div>
+          </form>
           <button
             onClick={toggleSeacrh}
             className="bg-white w-10 h-10 md:w-12 md:h-12 rounded-md outline-solid outline-2 outline-black shadow-[5px_5px_0_0_rgb(0,0,0)] flex md:hidden justify-center items-center transition-colors duration-200"
@@ -39,15 +54,20 @@ export default function NavbarComponent() {
         </div>
       </div>
       {isOpen && (
-        <div className="flex md:hidden flex-row w-full bg-white py-1 px-4 mt-5 items-center rounded-md outline-solid outline-2 outline-black shadow-[5px_5px_0_0_rgb(0,0,0)]">
+        <form
+          className="flex md:hidden flex-row w-full bg-white py-1 px-4 mt-5 items-center rounded-md outline-solid outline-2 outline-black shadow-[5px_5px_0_0_rgb(0,0,0)]"
+          onSubmit={handleSubmit}
+        >
           <i className="ri-search-line" style={{ fontSize: "1.4rem" }}></i>
           <input
             type="text"
             placeholder="cari Kota..."
             className="bg-white ml-3 py-2 items-center w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             autoFocus
           />
-        </div>
+        </form>
       )}
     </div>
   );

@@ -106,7 +106,7 @@ export default function HeroCard({
               <i className="ri-speed-up-line text-black text-2xl"></i>
               <h3 className="font-spaceg font-semibold text-lg">TEKANAN</h3>
             </div>
-            <h2 className="font-archivo text-2xl md:text-3xl xl:5xl mb-2">
+            <h2 className="font-archivo text-2xl md:text-5xl mb-2">
               {pressure}
               <span className="font-spaceg font-semibold text-2xl"> hPa</span>
             </h2>

@@ -28,9 +28,9 @@ export default function NavbarComponent({ onSearch }) {
             WeatherUp
           </h1>
         </div>
-        <div>
+        <div className="flex items-center justify-end w-60 md:w-auto">
           <form
-            className="md:flex md:flex-row w-full bg-white py-1 px-4 items-center rounded-md outline-solid outline-2 outline-black shadow-[5px_5px_0_0_rgb(0,0,0)] hidden"
+            className="hidden md:flex flex-row w-64 lg:w-100 bg-white py-1 px-4 items-center rounded-md outline-solid outline-2 outline-black shadow-[5px_5px_0_0_rgb(0,0,0)]"
             onSubmit={handleSubmit}
           >
             <i className="ri-search-line" style={{ fontSize: "1.4rem" }}></i>

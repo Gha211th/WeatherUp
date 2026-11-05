@@ -33,7 +33,7 @@ export default function App() {
       setCityName(`${name}, ${country || ""}`);
 
       const weatherResponses = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,uv_index_max&timezone=auto`,
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m,pressure_msl&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,uv_index_max&timezone=auto`,
       );
 
       if (!weatherResponses.ok) {
@@ -50,7 +50,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchDataByCity("berjo");
+    fetchDataByCity("jakarta");
   }, []);
 
   if (loading || !weather) {
@@ -65,6 +65,9 @@ export default function App() {
   const tempMax = Math.round(weather.daily.temperature_2m_max[0]);
   const tempMin = Math.round(weather.daily.temperature_2m_min[0]);
   const indexUv = Math.round(weather.daily.uv_index_max[0]);
+  const windSpeed = Math.round(weather.current.wind_speed_10m);
+  const humidity = Math.round(weather.current.relative_humidity_2m);
+  const pressure = Math.round(weather.current.pressure_msl);
 
   const getUvDesc = (val) => {
     if (val <= 2) return "Rendah";
@@ -72,6 +75,25 @@ export default function App() {
     if (val <= 7) return "Tinggi";
     if (val <= 10) return "Sangat Tinggi";
     if (val >= 11) return "Extreme";
+  };
+
+  const getWindSpeedDesc = (val) => {
+    if (val <= 10) return "Angin Ringan";
+    if (val <= 30) return "Angin Sedang";
+    if (val <= 60) return "Angin Kuat";
+    j;
+  };
+
+  const getHumidityDesc = (val) => {
+    if (val <= 39) return "Terlalu Kering";
+    if (val <= 60) return "Ideal / Sehat";
+    if (val >= 61) return "Terlalu lembab";
+  };
+
+  const getPressureDesc = (val) => {
+    if (val <= 1000) return "Rendah (potensi hujan & badai)";
+    if (val <= 1020) return "Normal (stabil)";
+    return "Tinggi (Cerah & Stabil)";
   };
 
   const getBarUvWidth = Math.min((indexUv / 12) * 100, 100);
@@ -88,18 +110,13 @@ export default function App() {
         uvIndex={indexUv}
         widthUV={`${getBarUvWidth}%`}
         descUV={getUvDesc(indexUv)}
+        windSpeed={windSpeed}
+        humidity={humidity}
+        pressure={pressure}
+        descWind={getWindSpeedDesc(windSpeed)}
+        descHumidity={getHumidityDesc(humidity)}
+        descPressure={getPressureDesc(pressure)}
       />
-      {loading && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex flex-col items-center justify-center">
-          {/* Kotak Card ala Neubrutalism untuk Loading */}
-          <div className="bg-amber-300 px-8 py-6 rounded-lg outline-solid outline-3 outline-black shadow-[7px_7px_0_0_rgb(0,0,0)] flex flex-col items-center gap-3">
-            <i className="ri-loader-4-line text-4xl animate-spin text-black"></i>
-            <p className="font-spaceg font-bold text-lg text-black">
-              Mencari Data Cuaca...
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

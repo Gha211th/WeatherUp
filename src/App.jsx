@@ -3,12 +3,14 @@ import React, { use, useEffect, useState } from "react";
 // Import component dari /components
 import NavbarComponent from "./components/NavbarComponents";
 import HeroCard from "./components/HeroCard";
+import HourlyForecast from "./components/HourlyForecast";
 
 //import utility from /utils
 import { getWeatherDetails } from "./data/data_desc";
 
 export default function App() {
   const [weather, setWeather] = useState(null);
+  const [airQuality, setAirQuality] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cityName, setCityName] = useState("jakarta");
 
@@ -32,16 +34,23 @@ export default function App() {
 
       setCityName(`${name}, ${country || ""}`);
 
-      const weatherResponses = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m,pressure_msl&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,uv_index_max&timezone=auto`,
-      );
+      const [weatherRes, airQualityRes] = await Promise.all([
+        fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m,pressure_msl&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,uv_index_max&timezone=auto`,
+        ),
+        fetch(
+          `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}&current=pm10,pm2_5,us_aqi,us_aqi_ozone`,
+        ),
+      ]);
 
-      if (!weatherResponses.ok) {
+      if (!weatherRes.ok) {
         throw new Error("failed to fetch data from open meteo API");
       }
 
-      const weatherData = await weatherResponses.json();
+      const weatherData = await weatherRes.json();
+      const airQualityData = await airQualityRes.json();
       setWeather(weatherData);
+      setAirQuality(airQualityData);
     } catch (e) {
       console.log(`failed to fetch data ${e}`);
     } finally {
@@ -57,9 +66,41 @@ export default function App() {
     return <p>Load the datas from api..</p>;
   }
 
+  const d = new Date();
+
+  const options = {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  };
+
+  const formattedDate = d.toLocaleDateString("id-ID", options);
+
+  const currentISO = weather.current.time;
+  const currentIndex = weather.hourly.time.findIndex((t) => t === currentISO);
+
+  const startIndex = currentIndex !== -1 ? currentIndex : 0;
+  const hourlyList = weather.hourly.time
+    .slice(startIndex, startIndex + 8)
+    .map((timeStr, index) => {
+      const actualIndex = startIndex + index;
+      const temp = Math.round(weather.hourly.temperature_2m[actualIndex]);
+      const code = weather.hourly.weather_code[actualIndex];
+
+      const formattedTime = index === 0 ? "kini" : timeStr.split("T")[1];
+
+      return {
+        time: formattedTime,
+        temp,
+        code,
+      };
+    });
+
   const weatherCode = weather.current.weather_code;
   const { desc, icon } = getWeatherDetails(weatherCode);
 
+  //get weathers data
   const currentTemp = Math.round(weather.current.temperature_2m);
   const feelsLikeTemp = Math.round(weather.current.apparent_temperature);
   const tempMax = Math.round(weather.daily.temperature_2m_max[0]);
@@ -68,6 +109,12 @@ export default function App() {
   const windSpeed = Math.round(weather.current.wind_speed_10m);
   const humidity = Math.round(weather.current.relative_humidity_2m);
   const pressure = Math.round(weather.current.pressure_msl);
+
+  //get air quality datas
+  const aqiValue = Math.round(airQuality?.current?.us_aqi ?? 0);
+  const pm25Value = Math.round(airQuality?.current?.pm2_5 ?? 0);
+  const pm10Value = Math.round(airQuality?.current?.pm10 ?? 0);
+  const ozoneValue = Math.round(airQuality?.current?.us_aqi_ozone ?? 0);
 
   const getUvDesc = (val) => {
     if (val <= 2) return "Rendah";
@@ -81,7 +128,6 @@ export default function App() {
     if (val <= 10) return "Angin Ringan";
     if (val <= 30) return "Angin Sedang";
     if (val <= 60) return "Angin Kuat";
-    j;
   };
 
   const getHumidityDesc = (val) => {
@@ -96,13 +142,22 @@ export default function App() {
     return "Tinggi (Cerah & Stabil)";
   };
 
+  const getAqiDesc = (val) => {
+    if (val <= 50) return "Baik (Sehat)";
+    if (val <= 100) return "Sedang";
+    if (val <= 150) return "Tidak Sehat bagi Kelompok Sensitif";
+    if (val <= 200) return "Tidak Sehat";
+    return "Sangat Tidak Sehat";
+  };
+
   const getBarUvWidth = Math.min((indexUv / 12) * 100, 100);
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-blue-200">
-      <NavbarComponent onSearch={fetchDataByCity} />
+    <div className="w-full min-h-screen flex flex-col bg-[#F0F8FE]">
+      <NavbarComponent onSearch={fetchDataByCity} dateFormat={formattedDate} />
       <HeroCard
         cityName={cityName}
+        dateFormat={formattedDate}
         temp={currentTemp}
         desc={desc}
         weatherId={icon}
@@ -116,6 +171,14 @@ export default function App() {
         descWind={getWindSpeedDesc(windSpeed)}
         descHumidity={getHumidityDesc(humidity)}
         descPressure={getPressureDesc(pressure)}
+      />
+      <HourlyForecast
+        hourlyData={hourlyList}
+        aqiVal={aqiValue}
+        pm2_5Val={pm25Value}
+        pm10_Val={pm10Value}
+        ozoneVal={ozoneValue}
+        aqiDesc={getAqiDesc(aqiValue)}
       />
     </div>
   );

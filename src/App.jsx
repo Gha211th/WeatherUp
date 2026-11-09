@@ -1,5 +1,8 @@
 import React, { use, useEffect, useState } from "react";
 
+//import router & config
+import { Routes, Route } from "react-router-dom";
+
 // Import component dari /components
 import NavbarComponent from "./components/NavbarComponents";
 import HeroCard from "./components/HeroCard";
@@ -8,11 +11,17 @@ import HourlyForecast from "./components/HourlyForecast";
 //import utility from /utils
 import { getWeatherDetails } from "./data/data_desc";
 
+//import pages from /pages
+import LoadingPage from "./pages/LoadingPage";
+import DetailPage from "./pages/DetailPage";
+
 export default function App() {
   const [weather, setWeather] = useState(null);
   const [airQuality, setAirQuality] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cityName, setCityName] = useState("jakarta");
+  const [cityOnly, setCityOnly] = useState("jakarta");
+  const [countryOnly, setCountryOnly] = useState("Indonesia");
 
   const fetchDataByCity = async (queryCity) => {
     try {
@@ -33,6 +42,8 @@ export default function App() {
       const { latitude, longitude, name, country } = geoData.results[0];
 
       setCityName(`${name}, ${country || ""}`);
+      setCountryOnly(country);
+      setCityOnly(name);
 
       const [weatherRes, airQualityRes] = await Promise.all([
         fetch(
@@ -63,7 +74,7 @@ export default function App() {
   }, []);
 
   if (loading || !weather) {
-    return <p>Load the datas from api..</p>;
+    return <LoadingPage />;
   }
 
   const d = new Date();
@@ -82,7 +93,7 @@ export default function App() {
 
   const startIndex = currentIndex !== -1 ? currentIndex : 0;
   const hourlyList = weather.hourly.time
-    .slice(startIndex, startIndex + 8)
+    .slice(startIndex, startIndex + 10)
     .map((timeStr, index) => {
       const actualIndex = startIndex + index;
       const temp = Math.round(weather.hourly.temperature_2m[actualIndex]);
@@ -120,20 +131,20 @@ export default function App() {
     if (val <= 2) return "Rendah";
     if (val <= 5) return "Sedang";
     if (val <= 7) return "Tinggi";
-    if (val <= 10) return "Sangat Tinggi";
+    if (val <= 10) return "Tinggi";
     if (val >= 11) return "Extreme";
   };
 
   const getWindSpeedDesc = (val) => {
-    if (val <= 10) return "Angin Ringan";
-    if (val <= 30) return "Angin Sedang";
-    if (val <= 60) return "Angin Kuat";
+    if (val <= 10) return "Ringan";
+    if (val <= 30) return "Sedang";
+    if (val <= 60) return "Kuat";
   };
 
   const getHumidityDesc = (val) => {
-    if (val <= 39) return "Terlalu Kering";
-    if (val <= 60) return "Ideal / Sehat";
-    if (val >= 61) return "Terlalu lembab";
+    if (val <= 39) return "Kering";
+    if (val <= 60) return "Ideal";
+    if (val >= 61) return "Lembab";
   };
 
   const getPressureDesc = (val) => {
@@ -154,32 +165,55 @@ export default function App() {
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-[#F0F8FE]">
-      <NavbarComponent onSearch={fetchDataByCity} dateFormat={formattedDate} />
-      <HeroCard
-        cityName={cityName}
-        dateFormat={formattedDate}
-        temp={currentTemp}
-        desc={desc}
-        weatherId={icon}
-        feelTemp={`Terasa seperti ${feelsLikeTemp} - Maks ${tempMax}° - Min ${tempMin}°`}
-        uvIndex={indexUv}
-        widthUV={`${getBarUvWidth}%`}
-        descUV={getUvDesc(indexUv)}
-        windSpeed={windSpeed}
-        humidity={humidity}
-        pressure={pressure}
-        descWind={getWindSpeedDesc(windSpeed)}
-        descHumidity={getHumidityDesc(humidity)}
-        descPressure={getPressureDesc(pressure)}
-      />
-      <HourlyForecast
-        hourlyData={hourlyList}
-        aqiVal={aqiValue}
-        pm2_5Val={pm25Value}
-        pm10_Val={pm10Value}
-        ozoneVal={ozoneValue}
-        aqiDesc={getAqiDesc(aqiValue)}
-      />
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <>
+              <NavbarComponent
+                onSearch={fetchDataByCity}
+                dateFormat={formattedDate}
+              />
+              <HeroCard
+                cityName={cityName}
+                dateFormat={formattedDate}
+                temp={currentTemp}
+                desc={desc}
+                weatherId={icon}
+                feelTemp={`Terasa seperti ${feelsLikeTemp} - Maks ${tempMax}° - Min ${tempMin}°`}
+                uvIndex={indexUv}
+                widthUV={`${getBarUvWidth}%`}
+                windSpeed={windSpeed}
+                humidity={humidity}
+                pressure={pressure}
+                descPressure={getPressureDesc(pressure)}
+              />
+              <HourlyForecast
+                hourlyData={hourlyList}
+                aqiVal={aqiValue}
+                pm2_5Val={pm25Value}
+                pm10_Val={pm10Value}
+                ozoneVal={ozoneValue}
+                aqiDesc={getAqiDesc(aqiValue)}
+              />
+            </>
+          }
+        />
+        <Route
+          path="/detail"
+          element={
+            <DetailPage
+              cityName={cityOnly}
+              countryName={countryOnly}
+              minTemp={tempMin}
+              maxTemp={tempMax}
+              descHumidity={getHumidityDesc(humidity)}
+              descWind={getWindSpeedDesc(windSpeed)}
+              descUV={getUvDesc(indexUv)}
+            />
+          }
+        />
+      </Routes>
     </div>
   );
 }

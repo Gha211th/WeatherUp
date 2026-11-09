@@ -3,4 +3,16 @@
 
 @theme {
   --font-plus-jakarta-sans: "Plus Jakarta Sans", sans-serif;
+
+  --animate-float: float 2s ease-in-out infinite;
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-15px);
+    }
+  }
 }

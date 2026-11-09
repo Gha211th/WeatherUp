@@ -28,7 +28,7 @@ export default function NavbarComponent({ onSearch, dateFormat }) {
             Howdy, How are you👋
           </h1>
         </div>
-        <div className="w-full">
+        <div className="w-full md:w-fit">
           <form
             className="w-full md:w-80 lg:w-100 xl:w-150 flex flex-row items-center bg-white border border-gray-200 rounded-full py-2.5 px-4 shadow-sm hover:shadow-md transition-all"
             onSubmit={handleSubmit}

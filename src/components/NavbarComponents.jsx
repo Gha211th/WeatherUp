@@ -1,19 +1,13 @@
 import React, { useState } from "react";
 
 export default function NavbarComponent({ onSearch, dateFormat }) {
-  const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const toggleSeacrh = () => {
-    setIsOpen(!isOpen);
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (searchTerm.trim() !== "") {
       onSearch(searchTerm);
       setSearchTerm("");
-      setIsOpen(false);
     }
   };
 

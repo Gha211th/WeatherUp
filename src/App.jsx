@@ -2,6 +2,7 @@ import React, { use, useEffect, useState } from "react";
 
 //import router & config
 import { Routes, Route } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 // Import component dari /components
 import NavbarComponent from "./components/NavbarComponents";
@@ -14,6 +15,7 @@ import { getWeatherDetails } from "./data/data_desc";
 //import pages from /pages
 import LoadingPage from "./pages/LoadingPage";
 import DetailPage from "./pages/DetailPage";
+import Footer from "./components/Footer";
 
 export default function App() {
   const [weather, setWeather] = useState(null);
@@ -23,27 +25,38 @@ export default function App() {
   const [cityOnly, setCityOnly] = useState("jakarta");
   const [countryOnly, setCountryOnly] = useState("Indonesia");
 
-  const fetchDataByCity = async (queryCity) => {
+  const fetchWeatherData = async (inputType) => {
     try {
       setLoading(true);
+      let latitude, longitude;
 
-      const geoResponse = await fetch(
-        `https://geocoding-api.open-meteo.com/v1/search?name=${queryCity}&count=10&language=en&format=json`,
-      );
+      if (typeof inputType === "object" && inputType.lat && inputType.lon) {
+        latitude = inputType.lat;
+        longitude = inputType.lon;
+        setCityName("lokasi terkini");
+        setCityOnly("lokasi terkini");
+        setCountryOnly("");
+      } else {
+        const geoResponse = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${inputType}&count=10&language=en&format=json`,
+        );
 
-      const geoData = await geoResponse.json();
+        const geoData = await geoResponse.json();
 
-      if (!geoData.results || geoData.results.length === 0) {
-        alert("nama kota tidak ditemukan");
-        setLoading(false);
-        return;
+        if (!geoData.results || geoData.results.length === 0) {
+          alert("nama kota tidak ditemukan");
+          setLoading(false);
+          return;
+        }
+
+        const selectedLoc = geoData.results[0];
+        latitude = selectedLoc.latitude;
+        longitude = selectedLoc.longitude;
+
+        setCityName(`${selectedLoc.name}, ${selectedLoc.country || ""}`);
+        setCountryOnly(selectedLoc.country || "");
+        setCityOnly(selectedLoc.name);
       }
-
-      const { latitude, longitude, name, country } = geoData.results[0];
-
-      setCityName(`${name}, ${country || ""}`);
-      setCountryOnly(country);
-      setCityOnly(name);
 
       const [weatherRes, airQualityRes] = await Promise.all([
         fetch(
@@ -70,7 +83,20 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchDataByCity("jakarta");
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          fetchWeatherData({ lat: latitude, lon: longitude });
+        },
+        (e) => {
+          alert(`failed to fetch location :( ${e}`);
+          fetchWeatherData("jakarta");
+        },
+      );
+    } else {
+      fetchWeatherData("jakarta");
+    }
   }, []);
 
   if (loading || !weather) {
@@ -147,12 +173,6 @@ export default function App() {
     if (val >= 61) return "Lembab";
   };
 
-  const getPressureDesc = (val) => {
-    if (val <= 1000) return "Rendah (potensi hujan & badai)";
-    if (val <= 1020) return "Normal (stabil)";
-    return "Tinggi (Cerah & Stabil)";
-  };
-
   const getAqiDesc = (val) => {
     if (val <= 50) return "Baik (Sehat)";
     if (val <= 100) return "Sedang";
@@ -171,7 +191,7 @@ export default function App() {
           element={
             <>
               <NavbarComponent
-                onSearch={fetchDataByCity}
+                onSearch={fetchWeatherData}
                 dateFormat={formattedDate}
               />
               <HeroCard
@@ -186,7 +206,6 @@ export default function App() {
                 windSpeed={windSpeed}
                 humidity={humidity}
                 pressure={pressure}
-                descPressure={getPressureDesc(pressure)}
               />
               <HourlyForecast
                 hourlyData={hourlyList}
@@ -194,8 +213,11 @@ export default function App() {
                 pm2_5Val={pm25Value}
                 pm10_Val={pm10Value}
                 ozoneVal={ozoneValue}
-                aqiDesc={getAqiDesc(aqiValue)}
+                airDesc={getAqiDesc(aqiValue)}
               />
+              <div className="w-full mt-auto">
+                <Footer />
+              </div>
             </>
           }
         />

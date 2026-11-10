@@ -8,6 +8,7 @@ export default function HourlyForecast({
   pm2_5Val,
   pm10_Val,
   ozoneVal,
+  airDesc,
 }) {
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-3 px-8 lg:px-15 xl:px-30 mt-5 gap-y-5 gap-x-0 lg:gap-x-5 lg:gap-y-0">
@@ -47,9 +48,16 @@ export default function HourlyForecast({
         </div>
       </div>
       <div className="w-full col-span-1 bg-white shadow-sm hover:shadow-lg hover:scale-101 cursor-point transition-all duration-300 p-5 rounded-4xl mb-6">
-        <h2 className="font-plus-jakarta-sans font-medium text-xl text-black mb-4 tracking-wide">
-          Kualitas Udara
-        </h2>
+        <div className="w-full flex flex-row">
+          <h2 className="font-plus-jakarta-sans font-medium text-xl text-black mb-4 tracking-wide">
+            Kualitas Udara
+          </h2>
+          <div className="">
+            <p className="px-2 py-1 font-plus-jakarta-sans font-normal text-white">
+              {airDesc}
+            </p>
+          </div>
+        </div>
         <div className="w-full grid grid-cols-1 grid-rows-2 gap-2">
           <div className="w-full grid grid-cols-2 gap-2">
             <div className="w-full h-fit p-2.5 flex flex-col gap-1 justify-center items-center bg-sky-50 rounded-2xl">
